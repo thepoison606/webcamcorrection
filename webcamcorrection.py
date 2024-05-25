@@ -3,26 +3,33 @@ import numpy as np
 
 # Liste zur Speicherung der Punkte
 points = []
+transformation_applied = False
 
 # Callback-Funktion für Mausklicks
 def click_event(event, x, y, flags, params):
+    global points, transformation_applied
     # Überprüfen, ob die linke Maustaste geklickt wurde
     if event == cv2.EVENT_LBUTTONDOWN:
-        # Punkt hinzufügen
-        points.append((x, y))
-        # Punkt auf dem Bild anzeigen
-        cv2.circle(frame, (x,y), 50, (0,255,0), -1)
-        cv2.imshow('Webcam', frame)
+        if len(points) < 4:
+            # Punkt hinzufügen
+            points.append((x, y))
+            # Punkt auf dem Bild anzeigen
+            cv2.circle(frame, (x, y), 5, (0, 255, 0), -1)
+            cv2.imshow('Webcam', frame)
+            # Überprüfen, ob vier Punkte ausgewählt wurden
+            if len(points) == 4:
+                transformation_applied = True
+        else:
+            # Zurücksetzen der Punkte und Transformation deaktivieren
+            points = []
+            transformation_applied = False
 
-
-#Funktion zum transformieren der Punkte
+# Funktion zum Transformieren der Punkte
 def transform_image(image, pts1, pts2):
-    # Erstellen der Transformationsmatrix.
+    # Erstellen der Transformationsmatrix
     matrix = cv2.getPerspectiveTransform(pts1, pts2)
-    
-    # Wenden der perspektivische Transformation auf das Bild an.
+    # Wenden der perspektivischen Transformation auf das Bild an
     transformed_image = cv2.warpPerspective(image, matrix, (int(width), int(height)))
-    
     return transformed_image
 
 def sort_points(pts):
@@ -44,8 +51,7 @@ def sort_points(pts):
 
     return sorted_pts
 
-
-# Öffnen der Webcam.
+# Öffnen der Webcam
 cap = cv2.VideoCapture(0)
 
 # Lesen der Videodimensionen aus
@@ -57,29 +63,33 @@ cv2.namedWindow('Webcam')
 cv2.setMouseCallback('Webcam', click_event)
 
 while True:
-    pts2 = np.float32([[0,0],[width,0],[0,height],[width,height]])
-    ptsreset = np.float32([[0,0],[width,0],[0,height],[width,height]])
-    
-    # Nehmen Sie ein Frame von der Webcam auf.
+    pts2 = np.float32([[0, 0], [width, 0], [0, height], [width, height]])
+    ptsreset = np.float32([[0, 0], [width, 0], [0, height], [width, height]])
+
+    # Nehmen Sie ein Frame von der Webcam auf
     ret, frame = cap.read()
-    
-    # Überprüfen Sie, ob das Frame erfolgreich aufgenommen wurde.
+
+    # Überprüfen Sie, ob das Frame erfolgreich aufgenommen wurde
     if not ret:
         break
 
-    # Wenn vier Punkte ausgewählt wurden, führen der Transformation durch
-    if len(points) == 4:
+    # Markiere die geklickten Punkte
+    for point in points:
+        cv2.circle(frame, point, 5, (0, 255, 0), -1)
+
+    # Wenn vier Punkte ausgewählt wurden, Transformation anwenden
+    if transformation_applied:
         sorted_pts = sort_points(points)
         pts1 = np.float32(sorted_pts)
         frame = transform_image(frame, pts1, pts2)
 
-    # Zeigen Sie das transformierte Bild in einem Fenster an.
+    # Zeigen Sie das transformierte Bild in einem Fenster an
     cv2.imshow('Webcam', frame)
 
-    # [...], wenn die Taste 'q' gedrückt wird.
+    # Beenden der Schleife, wenn die Taste 'q' gedrückt wird
     if cv2.waitKey(1) & 0xFF == ord('q'):
-        frame = transform_image(frame, ptsreset, pts2)
+        break
 
-# Schließen der Webcam und die Fenster, wenn die Schleife beendet ist.
+# Schließen der Webcam und der Fenster, wenn die Schleife beendet ist
 cap.release()
 cv2.destroyAllWindows()
