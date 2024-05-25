@@ -20,7 +20,7 @@ def transform_image(image, pts1, pts2):
     # Erstellen der Transformationsmatrix.
     matrix = cv2.getPerspectiveTransform(pts1, pts2)
     
-    # Wenden der perspektivische Transformation auf das Bild an.
+    # Anwenden der perspektivische Transformation auf das Bild.
     transformed_image = cv2.warpPerspective(image, matrix, (int(width), int(height)))
     
     return transformed_image
@@ -60,10 +60,10 @@ while True:
     pts2 = np.float32([[0,0],[width,0],[0,height],[width,height]])
     ptsreset = np.float32([[0,0],[width,0],[0,height],[width,height]])
     
-    # Nehmen Sie ein Frame von der Webcam auf.
+    # Aufnahme eines Frames
     ret, frame = cap.read()
     
-    # Überprüfen Sie, ob das Frame erfolgreich aufgenommen wurde.
+    # Überprüfen , ob das Frame erfolgreich aufgenommen wurde.
     if not ret:
         break
 
@@ -73,13 +73,13 @@ while True:
         pts1 = np.float32(sorted_pts)
         frame = transform_image(frame, pts1, pts2)
 
-    # Zeigen Sie das transformierte Bild in einem Fenster an.
+    # Anzeigen des transformierte Bildes in einem Fenster .
     cv2.imshow('Webcam', frame)
 
     # [...], wenn die Taste 'q' gedrückt wird.
     if cv2.waitKey(1) & 0xFF == ord('q'):
         frame = transform_image(frame, ptsreset, pts2)
 
-# Schließen der Webcam und die Fenster, wenn die Schleife beendet ist.
+# Schließen der Webcam und der Fenster, wenn die Schleife beendet ist.
 cap.release()
 cv2.destroyAllWindows()
