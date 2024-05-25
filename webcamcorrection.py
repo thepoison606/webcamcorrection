@@ -1,6 +1,8 @@
 import cv2
 import numpy as np
 
+#BLABLABLABLA
+
 # Liste zur Speicherung der Punkte
 points = []
 transformation_applied = False
